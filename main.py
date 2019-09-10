@@ -15,28 +15,36 @@ salary_2015 = pd.read_csv('data/2015-value.csv')
 
 def clean_df(df):
   '''
-  Function for cleaning up df for rows with values that have column names as str type
-  the tables scraped from baseball-reference are multiple tables joined together
-  and the column names have been repeatedly scraped as a row entry.
-  Also want to remove pitchers with NaN values on salary as there is no way to quantify their value in this study
+  Function for cleaning up df for rows with values that have column names as str type.
+  The tables scraped from baseball-reference consist of multiple tables joined together
+  and the column names have been repeatedly scraped as row entries.
+  Remove pitchers with NaN values on salary as there is no way to quantify their value in this study
+  Remove columns, duplicate that will not be used
   '''
   if 'Salary' in df:
-    df.dropna(subset = ['Salary'])
-  return df[df['Name'] != 'Name'].reset_index()
+    df.dropna(subset = ['Salary'], inplace = True)
+  df = df[df['Name'] != 'Name']
+  df = df.drop(['Unnamed: 0_x', 'Unnamed: 0_y', 'Rk_x', 'GS', 'RA9def', 'RA9role', 'PPFp', 'RA9avg', 'WAA', '0DR',
+   'WAAadj', 'WAR', 'waaWL%', '162WL%', 'Acquired', 'GF', 'Wgr', '1stIP', 'Ahd', 'Tie', 'Bhd', 'Pit/GR', 'IP_y', 'G_y', 'IPmult'], axis=1).reset_index()
+  df.drop(['index'], axis=1, inplace=True)
+  return df.rename(columns ={"IP_x":"IP", "G_x": "G"})                                                                                                                                                                               
 
+def merge_df(df1, df2):
+  '''
+  df1, df2 = reliever and value dfs
+  Merge the dfs using inner join because pitchers from {year}-value df includes all pitchers, starters and relievers.
+  This way, it will eliminate all the non-relievers by only merging rows under pitchers listed in the reliever df.
+  '''
+  return pd.merge(df1, df2, how='inner', on =['Name', 'Age', 'Tm'])
 
-# team_salary = table1[36]
+df_2019 = clean_df(merge_df(r_2019, salary_2019))
+df_2018 = clean_df(merge_df(r_2018, salary_2018))
+df_2017 = clean_df(merge_df(r_2017, salary_2017))
+df_2016 = clean_df(merge_df(r_2016, salary_2016))
+df_2015 = clean_df(merge_df(r_2015, salary_2015))
 
-# team_relief_pitching = table2[37]
-
-# table = pd.merge(relief_pitching_table, salary_table, how='inner', on =['Name', 'Age', 'Tm'])
-# #Inner join was used on name, age, and team columns for 2 reasons: 
-# # 1. salary_table has the salary for all pitchers, and we are only interested in relief pitchers from the relief_pitching_table
-# # 2. There are players with the same names so age and team identifiers are needed to merge them correctly.
-# #Additionally, players traded to different teams unfortunately cannot simply have their stats combined and averaged by their entries due to different sample size for games played.
-
-# table = table[table['Name'] != 'Name'].reset_index()
-# # Salary_table and relief_pitching_table have many rows where the values are the column names, due to each of them consisting of multiple tables merged into one.
+dfs = [df_2019, df_2018, df_2017, df_2016, df_2015]
+years_5 = pd.concat(dfs)
 
 # salary = table['Salary'] #player salary
 # WAR = table['WAR'] #wins after replacement
