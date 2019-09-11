@@ -1,22 +1,33 @@
 import pandas as pd
 import numpy as np 
 import matplotlib.pyplot as plt
+import glob
+import os
+import re
 
-r_2019 = pd.read_csv('data/2019-reliever.csv')
-r_2018 = pd.read_csv('data/2018-reliever.csv')
-r_2017 = pd.read_csv('data/2017-reliever.csv')
-r_2016 = pd.read_csv('data/2016-reliever.csv')
-r_2015 = pd.read_csv('data/2015-reliever.csv')
+relievers_csv = glob.glob('data/*-reliever*')
+relievers_csv.sort(reverse=True)
+salaries_csv = glob.glob('data/*-value*')
+salaries_csv.sort(reverse=True)
 
-r_5years = [r_2019, r_2018, r_2017, r_2016, r_2015]
+#Extracting file names into a list
 
-salary_2019 = pd.read_csv('data/2019-value.csv')
-salary_2018 = pd.read_csv('data/2018-value.csv')
-salary_2017 = pd.read_csv('data/2017-value.csv')
-salary_2016 = pd.read_csv('data/2016-value.csv')
-salary_2015 = pd.read_csv('data/2015-value.csv')
+relievers = []
+salaries = []
 
-salary_5years = [salary_2019, salary_2018, salary_2017, salary_2016, salary_2015]
+for file in relievers_csv:
+    path, filename = os.path.split(file)
+    year = re.findall('\d\d\d\d', filename)[0] #find only strings of 4 digits
+    temp_df = pd.read_csv(file)
+    temp_df['file_year'] = year #append year as a column to file as a reference
+    relievers.append(temp_df)
+
+for file in salaries_csv:
+    path, filename = os.path.split(file)
+    year = re.findall('\d\d\d\d', filename)[0]
+    temp_df = pd.read_csv(file)
+    temp_df['file_year'] = year
+    salaries.append(temp_df)
 
 def clean_df(df):
   '''
@@ -46,7 +57,7 @@ def merge_df(df1, df2):
 
 #creating the dfs per year and cleaning them
 
-df_5years = [clean_df(merge_df(r, s)) for r, s in zip(r_5years, salary_5years)]
+df_5years = [clean_df(merge_df(r, s)) for r, s in zip(relievers, salaries)]
 
 #I see that even after using inner join, there are some starting pitchers that entered the game in relief on occasion, and may throw the data off.
 #I will make a new column for GR/G, and then exclude those that have entered a game in relief less than 50% of the time
@@ -61,13 +72,13 @@ def games_relieved(df):
 
 #Yep, all these names look like starters. Good to exclude.
 
-def exclude_starters(df):
-  return df[df['GR%'] > .50]
+#Also going to exclude pitchers with less than 5 games played. It looks like there are a lot of position players who have pitched a couple of times that may skew the runs per 9 avg.
 
-# dfs = [games_relieved(df) for df in dfs]
-# dfs = [exclude_starters(df) for df in dfs]
+def exclusion(df):
+  return df[(df['GR%'] > .50) & (df['GR'].astype(int) > 5)]
+
 dfs = [games_relieved(df) for df in df_5years]
-dfs = [exclude_starters(df) for df in df_5years]
+dfs = [exclusion(df) for df in df_5years]
 
 #Need to change the salary amounts to float
 
@@ -97,11 +108,10 @@ def no_NaN(df, col_name):
   return df[df[col_name].isna() == False]
 
 for df in dfs:
-  clean_column(df, 'SV%')
+  # clean_column(df, 'SV%')
+  # clean_column(df, 'IS%')
   salary_to_int(df)
   column_to_num(df, 'RA9')
-  # strip_chars(df, 'SV%', '%')
-  # strip_chars(df, 'IS%', '%')
 
 #creating a df that is the sum of all data collected
 years_5 = pd.concat(dfs)
