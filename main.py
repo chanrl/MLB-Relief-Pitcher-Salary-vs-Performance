@@ -255,19 +255,37 @@ bs_2019_80 = bootstrap_col(df_2019, 80, 'RAA')
 
 fig, ax = plt.subplots(1,4, figsize=(12,4))
 
-graph_bootstrap(bs_2019_50, 20, 0)
-lower_ci, upper_ci = np.percentile(bs_2019_50[0], [2.5, 97.5])  
-graph_bootstrap(bs_2019_60, 20, 1)
-lower_ci, upper_ci = np.percentile(bs_2019_60[0], [2.5, 97.5])  
-graph_bootstrap(bs_2019_70, 20, 2)
-lower_ci, upper_ci = np.percentile(bs_2019_70[0], [2.5, 97.5])  
-graph_bootstrap(bs_2019_80, 20, 3)
-lower_ci, upper_ci = np.percentile(bs_2019_80[0], [2.5, 97.5])
+# graph_bootstrap(bs_2019_50, 20, 0)
+# lower_ci, upper_ci = np.percentile(bs_2019_50[0], [2.5, 97.5])  
+# graph_bootstrap(bs_2019_60, 20, 1)
+# lower_ci, upper_ci = np.percentile(bs_2019_60[0], [2.5, 97.5])  
+# graph_bootstrap(bs_2019_70, 20, 2)
+# lower_ci, upper_ci = np.percentile(bs_2019_70[0], [2.5, 97.5])  
+# graph_bootstrap(bs_2019_80, 20, 3)
+# lower_ci, upper_ci = np.percentile(bs_2019_80[0], [2.5, 97.5])
+
+# plt.show()
+# plt.ion()
+bs_5_50 = five_year_bs(dfs, 50, 'RAA')
+bs_5_60 = five_year_bs(dfs, 60, 'RAA')
+bs_5_70 = five_year_bs(dfs, 70, 'RAA')
+bs_5_80 = five_year_bs(dfs, 80, 'RAA')
+
+graph_bootstrap(bs_5_50, 20, 0)
+#lower_ci, upper_ci = np.percentile(bs_2019_50[0], [2.5, 97.5])  
+graph_bootstrap(bs_5_60, 20, 1)
+#lower_ci, upper_ci = np.percentile(bs_2019_60[0], [2.5, 97.5])  
+graph_bootstrap(bs_5_70, 20, 2)
+#lower_ci, upper_ci = np.percentile(bs_2019_70[0], [2.5, 97.5])  
+graph_bootstrap(bs_5_80, 20, 3)
+#lower_ci, upper_ci = np.percentile(bs_2019_80[0], [2.5, 97.5])
+
+plt.show()
 
 def corr_RAA(df, percentile):
   hp, lp = separate_df(df, percentile)
-  l_corr, l_pvalue = stats.pearsonr(lp.RAA, lp.Salary)
-  h_corr, h_pvalue = stats.pearsonr(hp.RAA, hp.Salary)
+  l_corr, l_pvalue = stats.pearsonr(lp.Salary, lp.RAA)
+  h_corr, h_pvalue = stats.pearsonr(hp.Salary, hp.RAA)
   print(f'For the lower paid pitcher group: The correlation coefficent is {l_corr} and the p-value is {l_pvalue}')
   print(f'For the higher paid pitcher group: The correlation coefficent is {h_corr} and the p-value is {h_pvalue}')
 
@@ -280,13 +298,18 @@ def corr_RAA_5yr(dfs, percentile):
     low_paid.append(lp)
   hp_5 = pd.concat(high_paid)
   lp_5 = pd.concat(low_paid)
-  l_corr, l_pvalue = stats.pearsonr(lp_5.RAA, lp_5.Salary)
-  h_corr, h_pvalue = stats.pearsonr(hp_5.RAA, hp_5.Salary)
+  l_corr, l_pvalue = stats.pearsonr(lp_5.Salary, lp_5.RAA)
+  h_corr, h_pvalue = stats.pearsonr(hp_5.Salary, hp_5.RAA)
   print(f'For the lower paid pitcher group: The correlation coefficent is {l_corr} and the p-value is {l_pvalue}')
   print(f'For the higher paid pitcher group: The correlation coefficent is {h_corr} and the p-value is {h_pvalue}')
 
 corr_RAA(df_2019, 80)
-corr_RAA(dfs, 80)
+
+corr_RAA_5yr(dfs, 80)
+# this one is difficult to graph the correlation. pearsons correlation coefficient is a measure of the linear correlation between 2 variables.
+# it's possible that without adjusting salaries for inflation by year, it will not be possible to see a linear relationship. 
+# In 2015, the highest paid reliever was getting 10million, vs 20 mil in 2019.
+max_2015, max_2019 = (dfs[4].Salary.max(), dfs[0].Salary.max())
 
 # def test(dfs, percentile, col_names):
 #   '''
@@ -318,12 +341,6 @@ corr_RAA(dfs, 80)
 #     d = {'p-values': pvalues, 'hp_means': hp_means, 'lp_means': lp_means}  
 #     df = pd.DataFrame(d, index=[col_names]) 
 #     return df
-
-# l_corr, l_pvalue = stats.pearsonr(lp['RAA'], lp['Salary'])
-# h_corr, h_pvalue = stats.pearsonr(hp.RAA, hp.Salary)
-
-# l_corr, l_pvalue = stats.pearsonr(lp_5yrs['RAA'], lp_5yrs['Salary'])
-# h_corr, h_pvalue = stats.pearsonr(hp_5yrs.RAA, hp_5yrs.Salary)
 
 # WAA = wins above average 
 # WAR = wins after replacement
