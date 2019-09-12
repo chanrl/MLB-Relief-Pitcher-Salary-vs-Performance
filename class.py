@@ -83,9 +83,11 @@ class rp_data():
       hp, lp = self.separate_df(idx, percentile)
       high_paid.append(hp)
       low_paid.append(lp)
-    hp_5 = pd.concat(high_paid)
-    lp_5 = pd.concat(low_paid)
-    column1, column2 = hp_5[f'{col_name}'], lp_5[f'{col_name}']
+    hps = pd.concat(high_paid)
+    lps = pd.concat(low_paid)
+    self.higher_paid_sum = hps
+    self.lower_paid_sum = lps
+    column1, column2 = hps[f'{col_name}'], lps[f'{col_name}']
     t_stat, pvalue = stats.ttest_ind(column1, column2)
     return (pvalue, column1.mean(), column2.mean())
 
@@ -131,17 +133,17 @@ class rp_data():
     year = df.file_year_x.unique()[0]
     return print(f'For the MLB season of {year}, the save opportunities converted % for the higher paid group is {column1.mean()}\nand the lower paid group % is {column2.mean()} with a p-value of {pvalue}.')
 
-  def bootstrap_col(self, idx, percentile, col_name, n_simulations=10000):
+  def bootstrap(self, idx, percentile, col_name, n_simulations=10000):
     hp, lp = self.separate_df(idx, percentile)
     bs_hp, bs_lp = bootstrap(np.array(hp[f'{col_name}']), n_simulations), bootstrap(np.array(lp[f'{col_name}']), n_simulations)
     higher_paid_bs, lower_paid_bs = [sample.mean() for sample in bs_hp], [sample.mean() for sample in bs_lp]
-    fig, ax = plt.subplots(figsize = (12,4))
-    ax.hist(higher_paid_bs, alpha=0.5, bins=20)
-    ax.hist(lower_paid_bs, alpha=0.5, bins=20)
     self.lower_ci_hp, self.upper_ci_hp = np.percentile(higher_paid_bs, [2.5, 97.5])
     self.lower_ci_lp, self.upper_ci_lp = np.percentile(lower_paid_bs, [2.5, 97.5])
     self.hp_bs_mean = np.mean(higher_paid_bs)
     self.lp_bs_mean = np.mean(lower_paid_bs)
+    fig, ax = plt.subplots(figsize = (12,4))
+    ax.hist(higher_paid_bs, alpha=0.5, bins=20)
+    ax.hist(lower_paid_bs, alpha=0.5, bins=20)
     ax.axvline(self.lower_ci_hp, color='blue', linestyle="--", alpha=0.5, label='Higher Paid 95% CI')
     ax.axvline(self.upper_ci_hp, color='blue', linestyle="--", alpha=0.5)
     ax.axvline(self.lower_ci_lp, color='red', linestyle="--", alpha=0.5, label='Lower Paid 95% CI')
@@ -156,7 +158,16 @@ class rp_data():
     plt.show()
     plt.ion()
 
-  def sum_bootstrap(self, percentile, col_name, n_simulations=10000):
+  def bootstrap_stats(self):
+    return print(f'''
+    The 95% confidence intervals for the higher paid group ranges from {self.lower_ci_hp} to {self.upper_ci_hp}.
+    The lower paid group ranges from {self.lower_ci_lp} and {self.upper_ci_lp}.
+    Means of the distribution - 
+    Higher Paid Group: {self.hp_bs_mean}
+    Lower Paid Group:{self.lp_bs_mean}
+     ''')
+
+  def bootstrap_sum(self, percentile, col_name, n_simulations=10000):
     high_paid = []
     low_paid = []
     for idx in range(len(self.dfs)):
@@ -166,18 +177,54 @@ class rp_data():
     hp_5 = pd.concat(high_paid)
     lp_5 = pd.concat(low_paid)
     bs_hp, bs_lp = bootstrap(np.array(hp_5[f'{col_name}']), n_simulations), bootstrap(np.array(lp_5[f'{col_name}']), n_simulations)
-    self.hp_bs_sum, self.lp_bs_sum = [sample.mean() for sample in bs_hp], [sample.mean() for sample in bs_lp]
-    return (self.hp_bs_sum, self.lp_bs_sum)
+    hp_bs_sum, lp_bs_sum = [sample.mean() for sample in bs_hp], [sample.mean() for sample in bs_lp]
+    self.lower_ci_hp_sum, self.upper_ci_hp_sum = np.percentile(hp_bs_sum, [2.5, 97.5])
+    self.lower_ci_lp_sum, self.upper_ci_lp_sum = np.percentile(lp_bs_sum, [2.5, 97.5])
+    self.hp_bs_sum_mean = np.mean(hp_bs_sum)
+    self.lp_bs_sum_mean = np.mean(lp_bs_sum)
+    fig, ax = plt.subplots(figsize = (12,4))
+    ax.hist(hp_bs_sum, alpha=0.5, bins=20)
+    ax.hist(lp_bs_sum, alpha=0.5, bins=20)
+    ax.axvline(self.lower_ci_hp_sum, color='blue', linestyle="--", alpha=0.5, label='Higher Paid 95% CI')
+    ax.axvline(self.upper_ci_hp_sum, color='blue', linestyle="--", alpha=0.5)
+    ax.axvline(self.lower_ci_lp_sum, color='red', linestyle="--", alpha=0.5, label='Lower Paid 95% CI')
+    ax.axvline(self.upper_ci_lp_sum, color='red', linestyle="--", alpha=0.5)
+    ax.axvline(self.hp_bs_sum_mean, color='green', linestyle="--", alpha=0.5, label='Higher Paid Mean')
+    ax.axvline(self.lp_bs_sum_mean, color='black', linestyle="--", alpha=0.5, label='Lower Paid Mean')
+    ax.legend()
+    ax.set_xlabel(f'{col_name} means')
+    ax.set_ylabel('Count')
+    ax.set_title(f'Bootstrapped {col_name} Sample Means Distribution from {self.years[-1]} to {self.years[0]}.')
+    plt.show()
+    plt.ion()
 
-#   def bootstrap_dist(bs_data, bins_num, idx):
-#     hp, lp = bs_data
-#   ax[idx].hist(hp, alpha=0.5, bins=bins_num)
-#   ax[idx].hist(lp, alpha=0.5, bins=bins_num)
+  def bootstrap_sum_stats(self):
+    return print(f'''
+    The 95% confidence intervals for the higher paid group ranges from {self.lower_ci_hp_sum} to {self.upper_ci_hp_sum}.
+    The lower paid group ranges from {self.lower_ci_lp_sum} and {self.upper_ci_lp_sum}.
+    Means of the distribution - 
+    Higher Paid Group: {self.hp_bs_sum_mean}
+    Lower Paid Group:{self.lp_bs_sum_mean}
+     ''')
 
-# bs_2019_50 = bootstrap_col(df_2019, 50, 'RAA')
-# bs_2019_60 = bootstrap_col(df_2019, 60, 'RAA')
-# bs_2019_70 = bootstrap_col(df_2019, 70, 'RAA')
-# bs_2019_80 = bootstrap_col(df_2019, 80, 'RAA')
+  def corr(self, idx, percentile, col_name):
+    hp, lp = self.separate_df(idx, percentile)
+    l_corr, l_pvalue = stats.pearsonr(lp.Salary, lp[f'{col_name}'])
+    h_corr, h_pvalue = stats.pearsonr(hp.Salary, hp[f'{col_name}'])
+    print(f'For the lower paid pitcher group: The correlation coefficent is {l_corr} and the p-value is {l_pvalue}')
+    print(f'For the higher paid pitcher group: The correlation coefficent is {h_corr} and the p-value is {h_pvalue}')
 
-# fig, ax = plt.subplots(1,4, figsize=(12,4))
+  def corr_sum(self, percentile, col_name):
+    high_paid = []
+    low_paid = []
+    for idx in range(len(self.dfs)):
+      hp, lp = self.separate_df(idx, percentile)
+      high_paid.append(hp)
+      low_paid.append(lp)
+    hps = pd.concat(high_paid)
+    lps = pd.concat(low_paid)
+    l_corr, l_pvalue = stats.pearsonr(lps.Salary, lps[f'{col_name}'])
+    h_corr, h_pvalue = stats.pearsonr(hps.Salary, hps[f'{col_name}'])
+    print(f'For the lower paid pitcher group: The correlation coefficent is {l_corr} and the p-value is {l_pvalue}')
+    print(f'For the higher paid pitcher group: The correlation coefficent is {h_corr} and the p-value is {h_pvalue}')
 

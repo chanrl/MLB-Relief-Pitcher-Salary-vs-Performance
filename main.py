@@ -243,45 +243,6 @@ def five_year_bs(dfs, percentile, col_name, n_simulations=10000):
   higher_paid, lower_paid = [sample.mean() for sample in bs_hp], [sample.mean() for sample in bs_lp]
   return (higher_paid, lower_paid)
 
-def graph_bootstrap(bs_data, bins_num, idx):
-  hp, lp = bs_data
-  ax[idx].hist(hp, alpha=0.5, bins=bins_num)
-  ax[idx].hist(lp, alpha=0.5, bins=bins_num)
-
-bs_2019_50 = bootstrap_col(df_2019, 50, 'RAA')
-bs_2019_60 = bootstrap_col(df_2019, 60, 'RAA')
-bs_2019_70 = bootstrap_col(df_2019, 70, 'RAA')
-bs_2019_80 = bootstrap_col(df_2019, 80, 'RAA')
-
-fig, ax = plt.subplots(1,4, figsize=(12,4))
-
-# graph_bootstrap(bs_2019_50, 20, 0)
-# lower_ci, upper_ci = np.percentile(bs_2019_50[0], [2.5, 97.5])  
-# graph_bootstrap(bs_2019_60, 20, 1)
-# lower_ci, upper_ci = np.percentile(bs_2019_60[0], [2.5, 97.5])  
-# graph_bootstrap(bs_2019_70, 20, 2)
-# lower_ci, upper_ci = np.percentile(bs_2019_70[0], [2.5, 97.5])  
-# graph_bootstrap(bs_2019_80, 20, 3)
-# lower_ci, upper_ci = np.percentile(bs_2019_80[0], [2.5, 97.5])
-
-# plt.show()
-# plt.ion()
-bs_5_50 = five_year_bs(dfs, 50, 'RAA')
-bs_5_60 = five_year_bs(dfs, 60, 'RAA')
-bs_5_70 = five_year_bs(dfs, 70, 'RAA')
-bs_5_80 = five_year_bs(dfs, 80, 'RAA')
-
-graph_bootstrap(bs_5_50, 20, 0)
-#lower_ci, upper_ci = np.percentile(bs_2019_50[0], [2.5, 97.5])  
-graph_bootstrap(bs_5_60, 20, 1)
-#lower_ci, upper_ci = np.percentile(bs_2019_60[0], [2.5, 97.5])  
-graph_bootstrap(bs_5_70, 20, 2)
-#lower_ci, upper_ci = np.percentile(bs_2019_70[0], [2.5, 97.5])  
-graph_bootstrap(bs_5_80, 20, 3)
-#lower_ci, upper_ci = np.percentile(bs_2019_80[0], [2.5, 97.5])
-
-plt.show()
-
 def corr_RAA(df, percentile):
   hp, lp = separate_df(df, percentile)
   l_corr, l_pvalue = stats.pearsonr(lp.Salary, lp.RAA)
