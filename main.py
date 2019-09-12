@@ -179,7 +179,7 @@ def create_df(df, percentile, col_names):
 #columns I am interested in:
 col_names = ['RA9', 'RAA', 'RAR', 'WAA', 'WAR']
 
-dfs_means = [create_df(df_2019, col_names, num) for num in range(50,100,10)]
+dfs_means = [create_df(df_2019, num, col_names) for num in range(50,100,10)]
 
 means_50 = dfs_means[0]
 means_60 = dfs_means[1]
@@ -257,9 +257,9 @@ def test(dfs, percentile, col_name, n_simulations=10000):
   higher_paid, lower_paid = [sample.mean() for sample in bs_hp], [sample.mean() for sample in bs_lp]
   return (higher_paid, lower_paid)
 
-fig, ax = plt.subplots(2,1, figsize=(12,4))
-ax[0].hist(x, alpha=0.5)
-ax[0].hist(y, alpha=0.5)
+# fig, ax = plt.subplots(2,1, figsize=(12,4))
+# ax[0].hist(x, alpha=0.5)
+# ax[0].hist(y, alpha=0.5)
 
 lower_ci, upper_ci = np.percentile(x, [2.5, 97.5])  
 
