@@ -243,8 +243,35 @@ def five_year_bs(dfs, percentile, col_name, n_simulations=10000):
   higher_paid, lower_paid = [sample.mean() for sample in bs_hp], [sample.mean() for sample in bs_lp]
   return (higher_paid, lower_paid)
 
-def test(dfs, percentile, col_name, n_simulations=10000):
-  
+def graph_bootstrap(bs_data, bins_num, idx):
+  hp, lp = bs_data
+  ax[idx].hist(hp, alpha=0.5, bins=bins_num)
+  ax[idx].hist(lp, alpha=0.5, bins=bins_num)
+
+bs_2019_50 = bootstrap_col(df_2019, 50, 'RAA')
+bs_2019_60 = bootstrap_col(df_2019, 60, 'RAA')
+bs_2019_70 = bootstrap_col(df_2019, 70, 'RAA')
+bs_2019_80 = bootstrap_col(df_2019, 80, 'RAA')
+
+fig, ax = plt.subplots(1,4, figsize=(12,4))
+
+graph_bootstrap(bs_2019_50, 20, 0)
+lower_ci, upper_ci = np.percentile(bs_2019_50[0], [2.5, 97.5])  
+graph_bootstrap(bs_2019_60, 20, 1)
+lower_ci, upper_ci = np.percentile(bs_2019_60[0], [2.5, 97.5])  
+graph_bootstrap(bs_2019_70, 20, 2)
+lower_ci, upper_ci = np.percentile(bs_2019_70[0], [2.5, 97.5])  
+graph_bootstrap(bs_2019_80, 20, 3)
+lower_ci, upper_ci = np.percentile(bs_2019_80[0], [2.5, 97.5])
+
+def corr_RAA(df, percentile):
+  hp, lp = separate_df(df, percentile)
+  l_corr, l_pvalue = stats.pearsonr(lp.RAA, lp.Salary)
+  h_corr, h_pvalue = stats.pearsonr(hp.RAA, hp.Salary)
+  print(f'For the lower paid pitcher group: The correlation coefficent is {l_corr} and the p-value is {l_pvalue}')
+  print(f'For the higher paid pitcher group: The correlation coefficent is {h_corr} and the p-value is {h_pvalue}')
+
+def corr_RAA_5yr(dfs, percentile):
   high_paid = []
   low_paid = []
   for df in dfs:
@@ -253,38 +280,50 @@ def test(dfs, percentile, col_name, n_simulations=10000):
     low_paid.append(lp)
   hp_5 = pd.concat(high_paid)
   lp_5 = pd.concat(low_paid)
-  bs_hp, bs_lp = bootstrap(np.array(hp_5[f'{col_name}']), n_simulations), bootstrap(np.array(lp_5[f'{col_name}']), n_simulations)
-  higher_paid, lower_paid = [sample.mean() for sample in bs_hp], [sample.mean() for sample in bs_lp]
-  return (higher_paid, lower_paid)
+  l_corr, l_pvalue = stats.pearsonr(lp_5.RAA, lp_5.Salary)
+  h_corr, h_pvalue = stats.pearsonr(hp_5.RAA, hp_5.Salary)
+  print(f'For the lower paid pitcher group: The correlation coefficent is {l_corr} and the p-value is {l_pvalue}')
+  print(f'For the higher paid pitcher group: The correlation coefficent is {h_corr} and the p-value is {h_pvalue}')
 
-# fig, ax = plt.subplots(2,1, figsize=(12,4))
-# ax[0].hist(x, alpha=0.5)
-# ax[0].hist(y, alpha=0.5)
+corr_RAA(df_2019, 80)
+corr_RAA(dfs, 80)
 
-lower_ci, upper_ci = np.percentile(x, [2.5, 97.5])  
+# def test(dfs, percentile, col_names):
+#   '''
+#   Parameters
+#   ----------
+#   col_names: list of column names as str
+#   '''
+#   if dfs == list:
+#     pvalues = []
+#     hp_means = []
+#     lp_means = []
+#     for col_name in col_names:
+#       pvalue, hp_mean, lp_mean = five_year(dfs, percentile, col_name)
+#       pvalues.append(pvalue)
+#       hp_means.append(hp_mean)
+#       lp_means.append(lp_mean)
+#     d = {'p-values': pvalues, 'hp_means': hp_means, 'lp_means': lp_means}
+#     df = pd.DataFrame(d, index=[col_names])
+#     return df
+#   else:
+#     pvalues = []
+#     hp_means = []
+#     lp_means = []
+#     for col_name in col_names:
+#       pvalue, hp_mean, lp_mean = return_stats(df_2019, percentile, col_name)
+#       pvalues.append(pvalue)
+#       hp_means.append(hp_mean)
+#       lp_means.append(lp_mean)
+#     d = {'p-values': pvalues, 'hp_means': hp_means, 'lp_means': lp_means}  
+#     df = pd.DataFrame(d, index=[col_names]) 
+#     return df
 
-# plt.show()
-# plt.ion()
+# l_corr, l_pvalue = stats.pearsonr(lp['RAA'], lp['Salary'])
+# h_corr, h_pvalue = stats.pearsonr(hp.RAA, hp.Salary)
 
-bs_test = bootstrap(np.array(hp_5yrs.RAA), 10000)
-x = [sample.mean() for sample in bs]
-
-l_corr, l_pvalue = stats.pearsonr(lp['RAA'], lp['Salary'])
-h_corr, h_pvalue = stats.pearsonr(hp.RAA, hp.Salary)
-
-l_corr, l_pvalue = stats.pearsonr(lp_5yrs['RAA'], lp_5yrs['Salary'])
-h_corr, h_pvalue = stats.pearsonr(hp_5yrs.RAA, hp_5yrs.Salary)
-
-#pvalues are < .05 for all of the above. indicates that there is a significant difference in means between higher and lower paid pitchers.
-
-
-# salary_2019, salary_2018, salary_2017, salary_2016, salary_2015 = []
-
-# for percentile in range(50,100,10):
-#   for df in dfs:
-#     hp, lp = salary_list(df, percentile)
-
-#t_stat, pvalue = stats.ttest_ind(higher_paid_5yrs.RA9, lower_paid_5yrs.RA9)
+# l_corr, l_pvalue = stats.pearsonr(lp_5yrs['RAA'], lp_5yrs['Salary'])
+# h_corr, h_pvalue = stats.pearsonr(hp_5yrs.RAA, hp_5yrs.Salary)
 
 # WAA = wins above average 
 # WAR = wins after replacement
