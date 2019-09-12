@@ -168,7 +168,7 @@ def create_df(df, percentile, col_names):
   hp_means = []
   lp_means = []
   for col_name in col_names:
-    pvalue, hp_mean, lp_mean = return_stats(df_2019, percentile, col_name)
+    pvalue, hp_mean, lp_mean = return_stats(df, percentile, col_name)
     pvalues.append(pvalue)
     hp_means.append(hp_mean)
     lp_means.append(lp_mean)
@@ -310,37 +310,6 @@ corr_RAA_5yr(dfs, 80)
 # it's possible that without adjusting salaries for inflation by year, it will not be possible to see a linear relationship. 
 # In 2015, the highest paid reliever was getting 10million, vs 20 mil in 2019.
 max_2015, max_2019 = (dfs[4].Salary.max(), dfs[0].Salary.max())
-
-# def test(dfs, percentile, col_names):
-#   '''
-#   Parameters
-#   ----------
-#   col_names: list of column names as str
-#   '''
-#   if dfs == list:
-#     pvalues = []
-#     hp_means = []
-#     lp_means = []
-#     for col_name in col_names:
-#       pvalue, hp_mean, lp_mean = five_year(dfs, percentile, col_name)
-#       pvalues.append(pvalue)
-#       hp_means.append(hp_mean)
-#       lp_means.append(lp_mean)
-#     d = {'p-values': pvalues, 'hp_means': hp_means, 'lp_means': lp_means}
-#     df = pd.DataFrame(d, index=[col_names])
-#     return df
-#   else:
-#     pvalues = []
-#     hp_means = []
-#     lp_means = []
-#     for col_name in col_names:
-#       pvalue, hp_mean, lp_mean = return_stats(df_2019, percentile, col_name)
-#       pvalues.append(pvalue)
-#       hp_means.append(hp_mean)
-#       lp_means.append(lp_mean)
-#     d = {'p-values': pvalues, 'hp_means': hp_means, 'lp_means': lp_means}  
-#     df = pd.DataFrame(d, index=[col_names]) 
-#     return df
 
 # WAA = wins above average 
 # WAR = wins after replacement
