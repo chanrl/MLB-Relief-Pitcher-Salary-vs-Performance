@@ -3,30 +3,62 @@ import pandas as pd
 from scipy import stats
 from bootstrap import *
 
-
-def clean_char(val):
-    try:
-        return float(val.replace("%", "")) / 100
-    except:
-        return 0
-
 class rp_data():
   def __init__(self, dfs):
     '''
-    Constructs a relief pitcher data instance with lists of dataframes
+    Instantiates a relief pitcher data class using lists of dataframes
+
+    Parameters
+    ----------
+    dfs - list of dataframes
+
     '''
     self.dfs = dfs
     years = pd.concat(self.dfs)
     self.years = years.file_year_x.unique()
 
   def __str__(self):
+    '''
+    Output when you print the class
+
+    Returns
+    ----------
+    
+    Str of the years in the data set.
+
+    '''
     return f"The years in this data set range from {self.years[-1]} to {self.years[0]}."
+
+  def year(self, idx):
+    '''
+    Returns year of the index given as a check
+
+    Parameters
+    ----------
+    idx - index number of dataframe
+
+    Returns
+    ----------
+    str of the year in specified dataframe
+
+    '''
+    return print(f"{self.dfs[idx].file_year_x.unique()[0]}")
 
   def separate_df(self, idx, percentile):
     '''
-    split df into higher paid and lower paid dfs by percentile
-    df = dataframe, percentile as int type
-    return as tuple of higher paid, lower paid dfs
+    Separates the df into higher paid and lower paid salary groups by percentile
+
+    Parameters
+    ----------
+    idx - index of dataframe
+
+    percentile - int of percentile to split dataframe by
+
+
+    Returns
+    ----------
+    Tuple of two dataframes, one dataframe of the higher paid group and the other of the lower paid group.
+
     '''
     dfs = self.dfs
     salary = dfs[idx].Salary
@@ -36,18 +68,21 @@ class rp_data():
 
   def return_stats(self, idx, percentile, col_name):
     '''
-      Draw p-values and means of samples from dataframes and columns of interest separating dataframe entries by percentiles.
+    Draw p-values and means of samples from dataframes and columns of interest separating dataframe entries by percentiles
+    using student's t-test.
 
-      Parameters
-      ----------
-      sample1: dataframe
-        The data to separate into two groups of higher paid and lower paid by given percentile
-      
-      col_name: column name as str
+    Parameters
+    ----------
+    sample1 - dataframe
+    
+    percentile - int of percentile to split dataframe by
 
-      Returns
-      -------
-      Tuple consisting of pvalue, mean of the column from the higher paid group, mean of the column from the lower paid group
+    col_name - str of column name of interest 
+
+    Returns
+    -------
+    Tuple of pvalue, mean of the column from the higher paid group, mean of the column from the lower paid group
+
     '''
     df = self.dfs[idx]
     higher_paid, lower_paid = self.separate_df(idx, percentile)
@@ -57,9 +92,19 @@ class rp_data():
 
   def create_df(self, idx, percentile, col_names):
     '''
+    Create a dataframe of pvalues, means of columns tested.
+
     Parameters
     ----------
-    col_names: list of column names as str
+    idx - index of dataframe
+    
+    percentile - int of percentile to split dataframe by
+
+    col_names - list of str of column names of interest 
+
+    Returns
+    -------
+    Dataframe showing pvalues, means of the columns from the higher paid group, means of the columns from the lower paid group
     
     '''
     pvalues = []
@@ -75,6 +120,21 @@ class rp_data():
     return df
 
   def sum_data(self, percentile, col_name):
+    '''
+    Draw p-values and means of samples from the sum of all dataframes and 
+    columns of interest separating dataframe entries by percentiles using student's t-test.
+
+    Parameters
+    ----------
+    percentile - int of percentile to split dataframes by
+
+    col_name - str of column name of interest 
+
+    Returns
+    -------
+    Tuple of pvalue, mean of the column from the higher paid group, mean of the column from the lower paid group
+
+    '''
     high_paid = []
     low_paid = []
     for idx in range(len(self.dfs)):
@@ -91,11 +151,19 @@ class rp_data():
 
   def create_sum_df(self, percentile, col_names):
     '''
+    Create a dataframe of the sum of all dataframes imported of pvalues, means of columns tested.
+
     Parameters
     ----------
-    col_names: list of column names as str
-    '''
+    percentile - int of percentile to split dataframes by
 
+    col_names - list of str of column names of interest 
+
+    Returns
+    -------
+    Dataframe showing pvalues, means of the columns from the higher paid group, means of the columns from the lower paid group of the sum of all years
+
+    '''
     pvalues = []
     hp_means = []
     lp_means = []
@@ -112,6 +180,20 @@ class rp_data():
 #I decided to drop the entries with NaN from the dataset since some relief pitchers may never be called upon a save situation or situation with runners on base.
 
   def IS(self, idx, percentile):
+    '''
+    Print a str of the means of inherited runners scored % by higher paid and lower paid group with the p-value.
+
+    Parameters
+    ----------
+    idx - index of dataframe to test
+    
+    percentile - int of percentile to split dataframes by
+
+    Returns
+    -------
+    str
+
+    '''
     df = self.dfs[idx]
     salary = df.Salary
     cut_off = np.percentile(salary, percentile)
@@ -122,6 +204,20 @@ class rp_data():
     return print(f'For the MLB season of {year}, the inherited runners scored % for the higher paid group is {column1.mean()}\nand the lower paid group % is {column2.mean()} with a p-value of {pvalue}.')
 
   def SV(self, idx, percentile):
+    '''
+    Print a str of the means of save opportunities converted % by higher paid and lower paid group with the p-value.
+
+    Parameters
+    ----------
+    idx - index of dataframe to test
+    
+    percentile - int of percentile to split dataframes by
+
+    Returns
+    -------
+    str
+
+    '''
     df = self.dfs[idx]
     salary = df.Salary
     cut_off = np.percentile(salary, percentile)
@@ -132,6 +228,25 @@ class rp_data():
     return print(f'For the MLB season of {year}, the save opportunities converted % for the higher paid group is {column1.mean()}\nand the lower paid group % is {column2.mean()} with a p-value of {pvalue}.')
 
   def bootstrap(self, idx, percentile, col_name, n_simulations=10000):
+    '''
+    Resamples from a dataframe by percentile on the column of interest per # of simulations.
+    Create a histogram of the bootstrapped data.
+
+    Parameters
+    ----------
+    idx - index of dataframe to test
+    
+    percentile - int of percentile to split dataframes by
+
+    col_name - column name of interest
+
+    n_simulations - number of times to bootstrap, default to 10000
+
+    Returns
+    -------
+    Histogram of the results with 95% CI, sample distribution means
+
+    '''
     hp, lp = self.separate_df(idx, percentile)
     bs_hp, bs_lp = bootstrap(np.array(hp[f'{col_name}']), n_simulations), bootstrap(np.array(lp[f'{col_name}']), n_simulations)
     higher_paid_bs, lower_paid_bs = [sample.mean() for sample in bs_hp], [sample.mean() for sample in bs_lp]
@@ -140,8 +255,8 @@ class rp_data():
     self.hp_bs_mean = np.mean(higher_paid_bs)
     self.lp_bs_mean = np.mean(lower_paid_bs)
     fig, ax = plt.subplots(figsize = (12,4))
-    ax.hist(higher_paid_bs, alpha=0.5, bins=20)
-    ax.hist(lower_paid_bs, alpha=0.5, bins=20)
+    ax.hist(higher_paid_bs, alpha=0.5, bins=20, label='Higher Paid')
+    ax.hist(lower_paid_bs, alpha=0.5, bins=20, label ='Lower Paid')
     ax.axvline(self.lower_ci_hp, color='blue', linestyle="--", alpha=0.5, label='Higher Paid 95% CI')
     ax.axvline(self.upper_ci_hp, color='blue', linestyle="--", alpha=0.5)
     ax.axvline(self.lower_ci_lp, color='red', linestyle="--", alpha=0.5, label='Lower Paid 95% CI')
@@ -157,6 +272,14 @@ class rp_data():
     plt.ion()
 
   def bootstrap_stats(self):
+    '''
+    Prints results from bootstrapped data for readability
+
+    Returns
+    -------
+    Str of 95% confidence interval bounds, sample distribution means
+
+    '''
     return print(f'''
     The 95% confidence intervals for the higher paid group ranges from {self.lower_ci_hp} to {self.upper_ci_hp}.
     The lower paid group ranges from {self.lower_ci_lp} and {self.upper_ci_lp}.
@@ -166,6 +289,25 @@ class rp_data():
      ''')
 
   def bootstrap_sum(self, percentile, col_name, n_simulations=10000):
+    '''
+    Resamples from a sum of the dataframes imported by percentile on the column of interest per # of simulations.
+    Create a histogram of the bootstrapped data.
+
+    Parameters
+    ----------
+    idx - index of dataframe to test
+    
+    percentile - int of percentile to split dataframes by
+
+    col_name - column name of interest
+
+    n_simulations - number of times to bootstrap, default to 10000
+
+    Returns
+    -------
+    Histogram of the results with 95% CI, sample distribution means
+
+    '''
     high_paid = []
     low_paid = []
     for idx in range(len(self.dfs)):
@@ -181,8 +323,8 @@ class rp_data():
     self.hp_bs_sum_mean = np.mean(hp_bs_sum)
     self.lp_bs_sum_mean = np.mean(lp_bs_sum)
     fig, ax = plt.subplots(figsize = (12,4))
-    ax.hist(hp_bs_sum, alpha=0.5, bins=20)
-    ax.hist(lp_bs_sum, alpha=0.5, bins=20)
+    ax.hist(hp_bs_sum, alpha=0.5, bins=20, label = 'Higher Paid')
+    ax.hist(lp_bs_sum, alpha=0.5, bins=20, label = 'Lower Paid')
     ax.axvline(self.lower_ci_hp_sum, color='blue', linestyle="--", alpha=0.5, label='Higher Paid 95% CI')
     ax.axvline(self.upper_ci_hp_sum, color='blue', linestyle="--", alpha=0.5)
     ax.axvline(self.lower_ci_lp_sum, color='red', linestyle="--", alpha=0.5, label='Lower Paid 95% CI')
@@ -197,6 +339,14 @@ class rp_data():
     plt.ion()
 
   def bootstrap_sum_stats(self):
+    '''
+    Prints results from the bootstrapped sum data for readability
+
+    Returns
+    -------
+    Str of 95% confidence interval bounds, sample distribution means
+
+    '''
     return print(f'''
     The 95% confidence intervals for the higher paid group ranges from {self.lower_ci_hp_sum} to {self.upper_ci_hp_sum}.
     The lower paid group ranges from {self.lower_ci_lp_sum} and {self.upper_ci_lp_sum}.
@@ -206,6 +356,22 @@ class rp_data():
      ''')
 
   def corr(self, idx, percentile, col_name):
+    '''
+    Finds the pearson correlation coefficient of a given dataframe and column of interest separated by percentile.
+
+    Parameters
+    ----------
+    idx - index of dataframe
+
+    percentile - int of percentile to separate df by
+
+    col_name - str of column name of interest
+
+    Returns
+    -------
+    Str of pearson correlation coefficients and their pvalues
+
+    '''
     hp, lp = self.separate_df(idx, percentile)
     l_corr, l_pvalue = stats.pearsonr(lp.Salary, lp[f'{col_name}'])
     h_corr, h_pvalue = stats.pearsonr(hp.Salary, hp[f'{col_name}'])
@@ -213,6 +379,14 @@ class rp_data():
     print(f'For the higher paid pitcher group: \nThe correlation coefficent is {h_corr} and the p-value is {h_pvalue}')
 
   def corr_sum(self, percentile, col_name):
+    '''
+    Finds the pearson correlation coefficient of the sum of the dataframes and column of interest separated by percentile.
+
+    Returns
+    -------
+    Str of pearson correlation coefficients and their pvalues
+
+    '''
     high_paid = []
     low_paid = []
     for idx in range(len(self.dfs)):
@@ -227,6 +401,22 @@ class rp_data():
     print(f'For the higher paid pitcher group: \nThe correlation coefficent is {h_corr} and the p-value is {h_pvalue}')
 
   def scatter(self, idx, percentile, col_name):
+    '''
+    Creates a scatter plot of a given dataframe by the salary and column of interest separated by percentile
+
+    Parameters
+    ----------
+    idx - index of dataframe
+
+    percentile - int of percentile to separate df by
+
+    col_name - str of column name of interest
+
+    Returns
+    -------
+    Scatter plot
+
+    '''
     hp, lp = self.separate_df(idx, percentile)
     fig, ax = plt.subplots()
     ax.scatter(hp.Salary, hp[col_name], alpha =0.5, label='hp')
@@ -235,3 +425,21 @@ class rp_data():
     ax.set_xlabel('Salary')
     ax.set_ylabel(f'{col_name}')
     ax.legend()
+
+def clean_char(val):
+  '''
+  Converts % string into float, will ignore NaN values
+
+  Parameters
+  ----------
+  val - str
+
+  Returns
+  ----------
+  float
+
+  '''
+  try:
+      return float(val.replace("%", "")) / 100
+  except:
+      return 0
