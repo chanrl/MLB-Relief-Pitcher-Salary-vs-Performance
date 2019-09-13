@@ -16,19 +16,17 @@ def get_html(link):
     return html
 
 
+if __name__ == "__main__":
+  #Value pitching for last 5 years:
+  for num in range(2015, 2020):
+    html = get_html(f'https://www.baseball-reference.com/leagues/MLB/{num}-value-pitching.shtml')
+    table = pd.read_html(html)
+    table[-1].to_csv(f'data/{num}-value.csv')
 
-#Value pitching for last 5 years:
-for num in range(2015, 2020):
- html = get_html(f'https://www.baseball-reference.com/leagues/MLB/{num}-value-pitching.shtml')
- table = pd.read_html(html)
- table[-1].to_csv(f'data/{num}-value.csv')
+  #Reliever stats for the last 5 years:
+  for num in range(2015, 2020):
+    html = get_html(f'https://www.baseball-reference.com/leagues/MLB/{num}-reliever-pitching.shtml')
+    table = pd.read_html(html)
+    table[-1].to_csv(f'data/{num}-reliever.csv')
 
-#Reliever stats for the last 5 years:
-for num in range(2015, 2020):
-  html = get_html(f'https://www.baseball-reference.com/leagues/MLB/{num}-reliever-pitching.shtml')
-  table = pd.read_html(html)
-  table[-1].to_csv(f'data/{num}-reliever.csv')
-
-# #Using pandas module to read scraped data as pandas DataFrame
-
-# table1.to_csv('test.csv')
+  # #Using pandas module to read scraped data as pandas DataFrame

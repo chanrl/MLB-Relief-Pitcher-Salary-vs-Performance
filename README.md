@@ -11,7 +11,3 @@ This project will visualize and attempt to identify trends in relief pitcher per
 Null Hypothesis: There is no difference in performance for relief pitchers who are paid more than those that are paid less.
 
 Alternative Hypothesis: Relief pitchers that are signed to a large contract perform differently than those with smaller contracts.
-
-t-test
-
-bootstrap

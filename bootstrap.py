@@ -16,7 +16,7 @@ def bootstrap(x, resamples=10000):
     Returns
     -------
     bootstrap_samples: List[np.array]
-      The bootsrap resamples from x.  
+      The bootstrap resamples from x.  
       Each array is a single bootstrap sample.
     """
     n_obs = x.shape[0]

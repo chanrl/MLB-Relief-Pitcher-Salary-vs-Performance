@@ -50,9 +50,7 @@ class rp_data():
       Tuple consisting of pvalue, mean of the column from the higher paid group, mean of the column from the lower paid group
     '''
     df = self.dfs[idx]
-    salary = df.Salary
-    cut_off = np.percentile(salary, percentile)
-    higher_paid, lower_paid = df[salary >= cut_off], df[salary < cut_off]
+    higher_paid, lower_paid = self.separate_df(idx, percentile)
     column1, column2 = higher_paid[f'{col_name}'], lower_paid[f'{col_name}']
     t_stat, pvalue = stats.ttest_ind(column1, column2)
     return pvalue, column1.mean(), column2.mean()
@@ -228,3 +226,12 @@ class rp_data():
     print(f'For the lower paid pitcher group: \nThe correlation coefficent is {l_corr} and the p-value is {l_pvalue}')
     print(f'For the higher paid pitcher group: \nThe correlation coefficent is {h_corr} and the p-value is {h_pvalue}')
 
+  def scatter(self, idx, percentile, col_name):
+    hp, lp = self.separate_df(idx, percentile)
+    fig, ax = plt.subplots()
+    ax.scatter(hp.Salary, hp[col_name], alpha =0.5, label='hp')
+    ax.scatter(lp.Salary, lp[col_name], alpha=0.5, label='lp')
+    ax.set_title(f'Salary vs {col_name}')
+    ax.set_xlabel('Salary')
+    ax.set_ylabel(f'{col_name}')
+    ax.legend()
