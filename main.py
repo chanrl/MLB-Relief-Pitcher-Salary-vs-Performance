@@ -8,7 +8,7 @@ from data import *
 from rp_data import *
 
 #source_to_df(start year, end year, directory to save to, download data if needed)
-relievers, salaries = source_to_df(2015, 2019, directory='temp', download=False)
+relievers, salaries = source_to_df(2015, 2019, directory='data', download=False)
 
 dfs = [clean_df(merge_df(r, s)) for r, s in zip(relievers, salaries)]
 

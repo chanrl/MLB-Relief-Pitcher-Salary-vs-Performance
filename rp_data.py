@@ -35,22 +35,20 @@ class rp_data():
 
     Parameters
     ----------
-    year - str of year of interest
+    year - int of year of interest
      
     Returns
     ----------
     idx of dataframe that corresponds to year
 
     '''
-    year_to_find = year_of_interest
+    year_to_find = str(year_of_interest)
     self.idx = ''
     for num in range(len(self.dfs)):
       if self.dfs[num].file_year_x.unique()[0] == year_to_find:
         self.idx = num
         break
     return self.idx
-
-    # return print(f"{self.dfs[idx].file_year_x.unique()[0]}")
 
   def separate_df(self, idx, percentile):
     '''
@@ -81,7 +79,7 @@ class rp_data():
 
     Parameters
     ----------
-    year - str of year of interest
+    year - int of year of interest
     
     percentile - int of percentile to split dataframe by
 
@@ -105,7 +103,7 @@ class rp_data():
 
     Parameters
     ----------
-    year - str of year of interest
+    year - int of year of interest
     
     percentile - int of percentile to split dataframe by
 
@@ -195,7 +193,7 @@ class rp_data():
 
     Parameters
     ----------
-    year - str of year of interest
+    year - int of year of interest
     
     percentile - int of percentile to split dataframes by
 
@@ -220,7 +218,7 @@ class rp_data():
 
     Parameters
     ----------
-    year - str of year of interest
+    year - int of year of interest
     
     percentile - int of percentile to split dataframes by
 
@@ -246,7 +244,7 @@ class rp_data():
 
     Parameters
     ----------
-    year - str of year of interest
+    year - int of year of interest
     
     percentile - int of percentile to split dataframes by
 
@@ -374,7 +372,7 @@ class rp_data():
 
     Parameters
     ----------
-    year - str of year of interest
+    year - int of year of interest
 
     percentile - int of percentile to separate df by
 
@@ -420,7 +418,7 @@ class rp_data():
 
     Parameters
     ----------
-    year - str of year of interest
+    year - int of year of interest
 
     percentile - int of percentile to separate df by
 
