@@ -29,20 +29,28 @@ class rp_data():
     '''
     return f"The years in this data set range from {self.years[-1]} to {self.years[0]}."
 
-  def year(self, idx):
+  def year(self, year_of_interest):
     '''
     Returns year of the index given as a check
 
     Parameters
     ----------
-    idx - index number of dataframe
-
+    year - str of year of interest
+     
     Returns
     ----------
-    str of the year in specified dataframe
+    idx of dataframe that corresponds to year
 
     '''
-    return print(f"{self.dfs[idx].file_year_x.unique()[0]}")
+    year_to_find = year_of_interest
+    self.idx = ''
+    for num in range(len(self.dfs)):
+      if self.dfs[num].file_year_x.unique()[0] == year_to_find:
+        self.idx = num
+        break
+    return self.idx
+
+    # return print(f"{self.dfs[idx].file_year_x.unique()[0]}")
 
   def separate_df(self, idx, percentile):
     '''
@@ -66,14 +74,14 @@ class rp_data():
     self.higher_paid, self.lower_paid = dfs[idx][salary >= cut_off], dfs[idx][salary < cut_off]
     return (self.higher_paid, self.lower_paid)
 
-  def return_stats(self, idx, percentile, col_name):
+  def return_stats(self, year, percentile, col_name):
     '''
     Draw p-values and means of samples from dataframes and columns of interest separating dataframe entries by percentiles
     using student's t-test.
 
     Parameters
     ----------
-    sample1 - dataframe
+    year - str of year of interest
     
     percentile - int of percentile to split dataframe by
 
@@ -84,19 +92,20 @@ class rp_data():
     Tuple of pvalue, mean of the column from the higher paid group, mean of the column from the lower paid group
 
     '''
+    idx = self.year(year)
     df = self.dfs[idx]
     higher_paid, lower_paid = self.separate_df(idx, percentile)
     column1, column2 = higher_paid[f'{col_name}'], lower_paid[f'{col_name}']
     t_stat, pvalue = stats.ttest_ind(column1, column2)
     return pvalue, column1.mean(), column2.mean()
 
-  def create_df(self, idx, percentile, col_names):
+  def create_df(self, year, percentile, col_names):
     '''
     Create a dataframe of pvalues, means of columns tested.
 
     Parameters
     ----------
-    idx - index of dataframe
+    year - str of year of interest
     
     percentile - int of percentile to split dataframe by
 
@@ -107,11 +116,12 @@ class rp_data():
     Dataframe showing pvalues, means of the columns from the higher paid group, means of the columns from the lower paid group
     
     '''
+    idx = self.year(year)
     pvalues = []
     hp_means = []
     lp_means = []
     for col_name in col_names:
-      pvalue, hp_mean, lp_mean = self.return_stats(idx, percentile, col_name)
+      pvalue, hp_mean, lp_mean = self.return_stats(year, percentile, col_name)
       pvalues.append(pvalue)
       hp_means.append(hp_mean)
       lp_means.append(lp_mean)
@@ -179,13 +189,13 @@ class rp_data():
 #The next two functions are edge cases where I was not too sure what to do with the NaN values. 
 #I decided to drop the entries with NaN from the dataset since some relief pitchers may never be called upon a save situation or situation with runners on base.
 
-  def IS(self, idx, percentile):
+  def IS(self, year, percentile):
     '''
     Print a str of the means of inherited runners scored % by higher paid and lower paid group with the p-value.
 
     Parameters
     ----------
-    idx - index of dataframe to test
+    year - str of year of interest
     
     percentile - int of percentile to split dataframes by
 
@@ -194,6 +204,7 @@ class rp_data():
     str
 
     '''
+    idx = self.year(year)
     df = self.dfs[idx]
     salary = df.Salary
     cut_off = np.percentile(salary, percentile)
@@ -203,13 +214,13 @@ class rp_data():
     year = df.file_year_x.unique()[0]
     return print(f'For the MLB season of {year}, the inherited runners scored % for the higher paid group is {column1.mean()}\nand the lower paid group % is {column2.mean()} with a p-value of {pvalue}.')
 
-  def SV(self, idx, percentile):
+  def SV(self, year, percentile):
     '''
     Print a str of the means of save opportunities converted % by higher paid and lower paid group with the p-value.
 
     Parameters
     ----------
-    idx - index of dataframe to test
+    year - str of year of interest
     
     percentile - int of percentile to split dataframes by
 
@@ -218,6 +229,7 @@ class rp_data():
     str
 
     '''
+    idx = self.year(year)
     df = self.dfs[idx]
     salary = df.Salary
     cut_off = np.percentile(salary, percentile)
@@ -227,14 +239,14 @@ class rp_data():
     year = df.file_year_x.unique()[0]
     return print(f'For the MLB season of {year}, the save opportunities converted % for the higher paid group is {column1.mean()}\nand the lower paid group % is {column2.mean()} with a p-value of {pvalue}.')
 
-  def bootstrap(self, idx, percentile, col_name, n_simulations=10000):
+  def bootstrap(self, year, percentile, col_name, n_simulations=10000):
     '''
     Resamples from a dataframe by percentile on the column of interest per # of simulations.
     Create a histogram of the bootstrapped data.
 
     Parameters
     ----------
-    idx - index of dataframe to test
+    year - str of year of interest
     
     percentile - int of percentile to split dataframes by
 
@@ -247,6 +259,7 @@ class rp_data():
     Histogram of the results with 95% CI, sample distribution means
 
     '''
+    idx = self.year(year)
     hp, lp = self.separate_df(idx, percentile)
     bs_hp, bs_lp = bootstrap(np.array(hp[f'{col_name}']), n_simulations), bootstrap(np.array(lp[f'{col_name}']), n_simulations)
     higher_paid_bs, lower_paid_bs = [sample.mean() for sample in bs_hp], [sample.mean() for sample in bs_lp]
@@ -355,13 +368,13 @@ class rp_data():
     Lower Paid Group:{self.lp_bs_sum_mean}
      ''')
 
-  def corr(self, idx, percentile, col_name):
+  def corr(self, year, percentile, col_name):
     '''
     Finds the pearson correlation coefficient of a given dataframe and column of interest separated by percentile.
 
     Parameters
     ----------
-    idx - index of dataframe
+    year - str of year of interest
 
     percentile - int of percentile to separate df by
 
@@ -372,6 +385,7 @@ class rp_data():
     Str of pearson correlation coefficients and their pvalues
 
     '''
+    idx = self.year(year)
     hp, lp = self.separate_df(idx, percentile)
     l_corr, l_pvalue = stats.pearsonr(lp.Salary, lp[f'{col_name}'])
     h_corr, h_pvalue = stats.pearsonr(hp.Salary, hp[f'{col_name}'])
@@ -400,13 +414,13 @@ class rp_data():
     print(f'For the lower paid pitcher group: \nThe correlation coefficent is {l_corr} and the p-value is {l_pvalue}')
     print(f'For the higher paid pitcher group: \nThe correlation coefficent is {h_corr} and the p-value is {h_pvalue}')
 
-  def scatter(self, idx, percentile, col_name):
+  def scatter(self, year, percentile, col_name):
     '''
     Creates a scatter plot of a given dataframe by the salary and column of interest separated by percentile
 
     Parameters
     ----------
-    idx - index of dataframe
+    year - str of year of interest
 
     percentile - int of percentile to separate df by
 
@@ -417,11 +431,12 @@ class rp_data():
     Scatter plot
 
     '''
+    idx = self.year(year)
     hp, lp = self.separate_df(idx, percentile)
     fig, ax = plt.subplots()
     ax.scatter(hp.Salary, hp[col_name], alpha =0.5, label='hp')
     ax.scatter(lp.Salary, lp[col_name], alpha=0.5, label='lp')
-    ax.set_title(f'Salary vs {col_name}')
+    ax.set_title(f'{year} Salary vs {col_name}')
     ax.set_xlabel('Salary')
     ax.set_ylabel(f'{col_name}')
     ax.legend()

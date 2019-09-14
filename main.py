@@ -2,75 +2,19 @@ import pandas as pd
 import numpy as np 
 import matplotlib.pyplot as plt
 from scipy import stats
-import glob
-import os
-import re
+from web import *
 from bootstrap import *
+from data import *
 from rp_data import *
 
-relievers_csv = glob.glob('data/*-reliever*')
-relievers_csv.sort(reverse=True)
-salaries_csv = glob.glob('data/*-value*')
-salaries_csv.sort(reverse=True)
-
-#Extracting file names into a list
-
-relievers = []
-salaries = []
-
-for file in relievers_csv:
-    path, filename = os.path.split(file)
-    year = re.findall('\d\d\d\d', filename)[0] #find only strings of 4 digits
-    temp_df = pd.read_csv(file)
-    temp_df['file_year'] = year #append year as a column to file as a reference
-    relievers.append(temp_df)
-
-for file in salaries_csv:
-    path, filename = os.path.split(file)
-    year = re.findall('\d\d\d\d', filename)[0]
-    temp_df = pd.read_csv(file)
-    temp_df['file_year'] = year
-    salaries.append(temp_df)
-
-def clean_df(df):
-  '''
-  Function for cleaning up df for rows with values that have column names as str type.
-  The tables scraped from baseball-reference consist of multiple tables joined together
-  and the column names have been repeatedly scraped as row entries.
-  Remove pitchers with NaN values on salary as there is no way to quantify their value in this study
-  Select columns have useful values
-  '''
-  if 'Salary' in df:
-    df.dropna(subset = ['Salary'], inplace=True)
-  df = df[df['Name'] != 'Name']
-  col_names = ['Name','Age','Tm', 'G_x', 'GR', 'SV%', 'IS%','RA9', 'RAA', 'RAR', 'WAA', 'WAR', 'file_year_x', 'file_year_y', 'Salary']
-  df = df[col_names].reset_index(drop=True)
-  df.rename(columns ={"IP_x":"IP", "G_x": "G"}, inplace=True)
-  df['GR%'] = df['GR'].astype(int)/df['G'].astype(int)
-  return df
-
-def merge_df(df1, df2):
-  '''
-  df1, df2 = reliever and value dfs
-  Merge the dfs using inner join because pitchers from {year}-value df includes all pitchers, starters and relievers.
-  This way, it will eliminate all the non-relievers by only merging rows under pitchers listed in the reliever df.
-  '''
-  return pd.merge(df1, df2, how='inner', on =['Name', 'Age', 'Tm'])
+#source_to_df(start year, end year, directory to save to, download data if needed)
+relievers, salaries = source_to_df(2015, 2019, directory='temp', download=False)
 
 dfs = [clean_df(merge_df(r, s)) for r, s in zip(relievers, salaries)]
 
-def exclusion(df):
-  return df[(df['GR%'] > .50) & (df['GR'].astype(int) > 5)]
-
+# removes players who entered the game in relief less than 50% of the time and less than 5 times
+# majority of starter pitchers and position players removed from sample data
 dfs = [exclusion(df) for df in dfs]
-
-#Need to change the salary amounts to float
-
-def salary_to_int(df):
-  df['Salary'] = df['Salary'].replace('[$,]', '', regex=True).astype(int)
-
-def column_to_num(df, col_name, type=float):
-  df[col_name] = df[col_name].astype(type)
 
 col_names = ['RAA','RAR', 'RA9', 'WAA', 'WAR']
 
@@ -79,3 +23,26 @@ for df in dfs:
     salary_to_int(df)
     for col_name in col_names:
         column_to_num(df, col_name)
+
+data = rp_data(dfs)
+
+# Example functions with short descriptions. Full docstring in rp_data.py file
+cols = ['RA9', 'RAA', 'RAR', 'WAA', 'WAR'] #Current working performance metrics with the script. SV% and IS% are edge cases with own functions below.
+
+# create_df('year of interest', percentile to separate higher paid pitcher group by, performance metrics specified above in cols)
+data.create_df('2019', 80, cols) # returns dataframe of the p-values and means of the performance metric of the higher paid(hp) and lower paid(lp) relief pitcher groups
+data.create_sum_df(80, cols) # same as above but for the entire data set scraped
+
+data.bootstrap('2019', 70, 'RAA', 10000) # returns bootstrapped sample distribution sampled from specified year and performance metric of interest, default at 10000 simulations
+data.bootstrap_stats() # returns values of upper and lower CI of sample mean distribution, sample distribution means of hp and lp groups
+
+data.bootstrap_sum(80, 'RAA', 10000) # same as above but samples from the entire data set scraped
+data.bootstrap_sum_stats() # returns values of upper and lower CI of sample mean distribution for the above, sample distribution means of hp and lp groups
+
+data.corr('2019', 70, 'RAA') # returns pearsons correlation coefficient for salary vs performance metric specified using the year specified and percentile to separate by
+data.corr_sum('2019', 70) # same as above but for the entire data set scraped
+data.scatter('2019', 80, 'RAA') # plots salary vs performance metric on the year specified
+
+##edge cases
+data.IS('2017', 80) #returns mean of inherited runners scored % of sample year with p values of hp/lp pitcher groups separated by percentile 
+data.SV('2018', 70) #returns mean of save opportunities converted % of sample year with p values of hp/lp pitcher groups separated by percentile

@@ -2,10 +2,52 @@
 
 ## Glossary
 
+* Instructions
 * Background
 * Objectives
 * Hypothesis
 * Conclusions
+
+## Instructions
+
+1. On the main.py script, input the range of years you want to scrape on the **source_to_df** function. Indicate folder for the scraped csv files.
+   If data is already scraped, set download argument to False.
+
+2. Run main.py script. It should open up Chrome windows with baseball-reference on the years inputted. 
+   Let the automated chrome window to fully load and close the window each time to scrape the page source properly.
+
+3. The script should create an instance of the rp_data class called **data**.
+
+4. Current working methods with examples below. Full docstring for each method in rp_data.py.
+  - **cols = ['RA9', 'RAA', 'RAR', 'WAA', 'WAR']**
+    - Current working performance metrics with the script. SV% and IS% are edge cases with own functions below.
+  - **data.create_df('2019', 80, cols)**
+    - Select your year of interest and percentile to separate the higher paid and lower paid pitcher groups by. 
+      Ex. 2019 as the season, 80 = higher paid will be top 80th percentile for salary of the league.
+    - Returns dataframe of the p-values and means of the performance metrics in cols of the higher paid(hp) and lower paid(lp) relief pitcher groups
+  - **data.create_sum_df(80, cols)**
+    - Same as above but for the entire data set scraped
+  - **data.bootstrap('2019', 70, 'RAA', 10000)**
+    - Returns a histogram of two bootstrapped sample distributions of hp and lp, sampled from specified year and performance metric of interest, default at 10000 simulations
+  - **data.bootstrap_stats()**
+    - Returns values of upper and lower CI of sample mean distribution, sample distribution means of hp and lp groups
+  - **data.bootstrap_sum(80, 'RAA', 10000)**
+    - Same as above but samples from the entire data set scraped. Simulations also default at 10000.
+    - This method separates percentile by year first and then concatenates the higher paid/lower paid groups, instead of concatenating all the dataframes first and then       separating by percentile.
+  - **data.bootstrap_sum_stats()**
+    - Same as bootstrap_stats above.
+  - **data.corr('2019', 70, 'RAA')**
+    - Returns pearsons correlation coefficient for salary vs performance metric specified using the year specified and percentile to separate by
+  - **data.corr_sum(70, 'RA9')**
+    - Same as above but for the entire data set scraped
+  - **data.scatter('2019', 80, 'RAA')**
+    - Returns a scatter plot of salary vs performance metric for the year specified
+  - **data.IS('2017', 80)**
+    - Returns mean of inherited runners scored % of sample year with p values of hp/lp pitcher groups separated by percentile 
+  - **data.SV('2018', 70)**
+    - Returns mean of save opportunities converted % of sample year with p values of hp/lp pitcher groups separated by percentile
+
+5. Example usage can be viewed in example.ipynb, or an outdated version of the script and presentation with analysis can be seen in main.ipynb.
 
 ## Background
 
