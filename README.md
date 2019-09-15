@@ -10,6 +10,8 @@
 
 ## Instructions
 
+Modules Required: selenium webdriver, numpy, pandas, matplotlib.pyplot, scipy, os, glob, re  
+
 1. On the main.py script, input the range of years you want to scrape on the **source_to_df** function. Indicate folder for the scraped csv files.
    If data is already scraped, set download argument to False.
 
