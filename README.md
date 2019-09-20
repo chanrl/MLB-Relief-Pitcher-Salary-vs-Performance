@@ -19,38 +19,128 @@ Modules Required: selenium webdriver, numpy, pandas, matplotlib.pyplot, scipy, o
    Let the automated chrome window to fully load and close the window each time to scrape the page source properly.
 
 3. The script should create an instance of the rp_data class called **data**.
+    ```
+    In [1]: run main.py
+    
+    In [2]: data
+
+    Out[2]: <rp_data.rp_data at 0x7fe3db7c0f60>
+
+    In [3]: print(data)
+
+    The years in this data set range from 2015 to 2019.
+    ```
 
 4. Current working methods with examples below. Full docstring for each method in rp_data.py.
   - **cols = ['RA9', 'RAA', 'RAR', 'WAA', 'WAR']**
     - Current working performance metrics with the script. SV% and IS% are edge cases with own functions below.
-  - **data.create_df(2019, 80, cols)**
+  - **data.create_df(year, percentile, cols)**
     - Select your year of interest and percentile to separate the higher paid and lower paid pitcher groups by. 
       Ex. 2019 as the season, 80 = higher paid will be top 80th percentile for salary of the league.
     - Returns dataframe of the p-values and means of the performance metrics in cols of the higher paid(hp) and lower paid(lp) relief pitcher groups
-  - **data.create_sum_df(80, cols)**
+      ```
+      In [2]: data.create_df(2019, 80, cols)              
+      Out[2]: 
+          p-values  hp_means  lp_means
+      RA9  0.017098  4.523333  5.278362
+      RAA  0.020215  1.400000 -1.372881
+      RAR  0.016419  6.355556  3.163842
+      WAA  0.021000  0.142222 -0.125989
+      WAR  0.020751  0.584444  0.262712
+      ```
+  - **data.create_sum_df(percentile, cols)**
     - Same as above but for the entire data set scraped
-  - **data.bootstrap(2019, 70, 'RAA', 10000)**
+      ```
+      In [4]: data.create_sum_df(80, cols)
+
+      Out[4]: 
+          p-values  hp_means  lp_means
+      RA9  0.000777  4.228079  4.768947
+      RAA  0.002282  1.802956 -0.044610
+      RAR  0.002205  6.724138  4.633209
+      WAA  0.002338  0.197044  0.007683
+      WAR  0.000321  0.683744  0.416605
+      ```
+  - **data.bootstrap(year, percentile, performance_metric, n_sims=10000)**
     - Returns a histogram of two bootstrapped sample distributions of hp and lp, sampled from specified year and performance metric of interest, default at 10000 simulations
     - May need to use plt.show() after
+      ```
+      In [5]: data.bootstrap(2019, 70, 'RAA', 10000)
+      ```
+      ![Bootstrap](data/Figure_1.png)
   - **data.bootstrap_stats()**
     - Returns values of upper and lower CI of sample mean distribution, sample distribution means of hp and lp groups
-  - **data.bootstrap_sum(80, 'RAA', 10000)**
+      ```
+      In [6]: data.bootstrap_stats()
+
+      The 95% confidence intervals for the higher paid group ranges from -1.1944029850746265 to 2.716417910447761.
+      The lower paid group ranges from -2.529032258064516 and -0.44516129032258067.
+      Means of the distribution - 
+      Higher Paid Group: 0.7459731343283582
+      Lower Paid Group:-1.4869800000000002
+      ```
+  - **data.bootstrap_sum(percentile, performance_metric, n_sims=10000)**
     - Same as above but samples from the entire data set scraped. Simulations also default at 10000.
     - This method separates percentile by year first and then concatenates the higher paid/lower paid groups, instead of concatenating all the dataframes first and then       separating by percentile.
+      ```
+      In [7]: data.bootstrap_sum(80, 'RAA', 10000)
+      ```
+      ![Bootstrap_sum](data/Figure_2.png)
   - **data.bootstrap_sum_stats()**
     - Same as bootstrap_stats above.
-  - **data.corr(2019, 70, 'RAA')**
-    - Returns pearsons correlation coefficient for salary vs performance metric specified using the year specified and percentile to separate by
-  - **data.corr_sum(70, 'RA9')**
-    - Same as above but for the entire data set scraped
-  - **data.scatter(2019, 80, 'RAA')**
-    - Returns a scatter plot of salary vs performance metric for the year specified
-  - **data.IS(2017, 80)**
-    - Returns mean of inherited runners scored % of sample year with p values of hp/lp pitcher groups separated by percentile 
-  - **data.SV(2018, 70)**
-    - Returns mean of save opportunities converted % of sample year with p values of hp/lp pitcher groups separated by percentile
+      ```
+      In [8]: data.bootstrap_sum_stats()
 
-5. Example usage can be viewed in example.ipynb, or an outdated version of the script and presentation with analysis can be seen in main.ipynb.
+      The 95% confidence intervals for the higher paid group ranges from 0.5960591133004927 to 2.9852216748768474.
+      The lower paid group ranges from -0.5638475836431226 and 0.46099752168525354.
+      Means of the distribution - 
+      Higher Paid Group: 1.7996940886699506
+      Lower Paid Group:-0.04517856257744733
+      ```
+  - **data.corr(year, percentile, performance_metric)**
+    - Returns pearsons correlation coefficient for salary vs performance metric specified using the year specified and percentile to separate by
+      ```
+      In [9]: data.corr(2019, 70, 'RAA')
+
+      For the lower paid pitcher group: 
+      The correlation coefficent is 0.21077645192899985 and the p-value is 0.008474721158704807
+      For the higher paid pitcher group: 
+      The correlation coefficent is -0.07903372293183192 and the p-value is 0.5249457853542268
+      ```
+  - **data.corr_sum(percentile, performance_metric)**
+    - Same as above but for the entire data set scraped
+      ```
+      In [10]: data.corr_sum(70, 'RA9')
+
+      For the lower paid pitcher group: 
+      The correlation coefficent is -0.05513283582386783 and the p-value is 0.14334886553850731
+      For the higher paid pitcher group: 
+      The correlation coefficent is 0.005439750143839066 and the p-value is 0.9247475251442581
+      ```
+  - **data.scatter(year, percentile, performance_metric)**
+    - Returns a scatter plot of salary vs performance metric for the year specified
+      ```
+      data.scatter(2019, 80, 'RAA')
+      ```
+      ![Scatter](data/Figure_3.png)
+  - **data.IS(year, percentile)**
+    - Returns mean of inherited runners scored % of sample year with p values of hp/lp pitcher groups separated by percentile 
+      ```
+      In [12]: data.IS(2017, 80)
+
+      For the MLB season of 2017, the inherited runners scored % for the higher paid group is 0.26075
+      and the lower paid group % is 0.2896815286624205 with a p-value of 0.32776612154529094.
+      ```
+  - **data.SV(year, percentile)**
+    - Returns mean of save opportunities converted % of sample year with p values of hp/lp pitcher groups separated by percentile
+      ```
+      data.SV(2018, 70)
+                     
+      For the MLB season of 2018, the save opportunities converted % for the higher paid group is 0.47358490566037753
+      and the lower paid group % is 0.3935051546391753 with a p-value of 0.20389992743623975.
+      ```
+
+5. Example usage can be viewed in example.ipynb if instructions are still unclear, or an outdated version of the script and presentation with analysis can be seen in main.ipynb.
 
 ## Background
 
