@@ -15,6 +15,10 @@ Modules Required: selenium webdriver, numpy, pandas, matplotlib.pyplot, scipy, o
 1. On the main.py script, input the range of years you want to scrape on the **source_to_df** function. Indicate folder for the scraped csv files.
    If data is already scraped, set download argument to False.
 
+   ```
+   relievers, salaries = source_to_df(2000, 2019, directory='data', download=True)
+   ```
+
 2. Run main.py script. It should open up Chrome windows with baseball-reference on the years inputted. 
    Let the automated chrome window to fully load and close the window each time to scrape the page source properly.
 
