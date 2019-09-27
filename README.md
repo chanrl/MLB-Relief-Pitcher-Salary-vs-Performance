@@ -1,5 +1,8 @@
 # MLB Relief Pitcher Salary vs Performance
 
+Packaged class code for pip install
+https://pypi.org/project/dfpercentile-pkg-chanrl/0.0.1/
+
 ## Glossary
 
 * Instructions
